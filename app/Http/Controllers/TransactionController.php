@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\TransactionRequest;
-use Illuminate\Http\Request;
-use Swoole\Table;
 use Carbon\Carbon;
 
 class TransactionController extends Controller
@@ -43,7 +41,7 @@ class TransactionController extends Controller
         // Save to JSON file
         $this->saveTableToJson();
         $this->saveStatsToJson();
-        
+
         return response()->noContent(201);
     }
 
