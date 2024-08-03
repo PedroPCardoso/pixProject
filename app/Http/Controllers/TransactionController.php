@@ -32,15 +32,13 @@ class TransactionController extends Controller
 
         $key = $timestamp->timestamp + random_int(0, 1000) . $amount;
 
+
         $this->table->set($key, [
             'amount' => $amount,
             'timestamp' => $timestamp->toIso8601String()
         ]);
 
         $this->updateStatsOnInsert($amount);
-        // Save to JSON file
-        $this->saveTableToJson();
-        $this->saveStatsToJson();
 
         return response()->noContent(201);
     }
@@ -84,9 +82,6 @@ class TransactionController extends Controller
         }
 
         $this->resetStats();
-        // Save to JSON file
-        $this->saveTableToJson();
-        $this->saveStatsToJson();
 
         return response()->noContent(204);
     }
@@ -118,33 +113,5 @@ class TransactionController extends Controller
         ]);
     }
 
-    protected function saveTableToJson()
-    {
-        $transactions = [];
-        foreach ($this->table as $key => $row) {
-            $transactions[] = [
-                'amount' => $row['amount'],
-                'timestamp' => $row['timestamp'],
-            ];
-        }
-
-        $jsonFilePath = storage_path('app/transactions.json');
-        file_put_contents($jsonFilePath, json_encode($transactions));
-    }
-
-    protected function saveStatsToJson()
-    {
-        $stats = $this->stats->get(0);
-
-        $statsData = [
-            'sum' => $stats['sum'],
-            'count' => $stats['count'],
-            'max' => $stats['max'],
-            'min' => $stats['min'],
-        ];
-
-        $jsonFilePath = storage_path('app/stats.json');
-        file_put_contents($jsonFilePath, json_encode($statsData));
-    }
 
 }
