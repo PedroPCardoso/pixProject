@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\TransactionRequest;
 use Carbon\Carbon;
 use App\Services\SwooleTableService;
+use Illuminate\Support\Facades\Cache;
+
 
 class TransactionController extends Controller
 {
@@ -24,7 +26,7 @@ class TransactionController extends Controller
         $amount = (float) $request->input('amount');
         $timestamp = Carbon::createFromFormat('Y-m-d\TH:i:s.u\Z', $request->input('timestamp'));
         $now = Carbon::now();
-
+        Cache::store('octane')->put('framework', 'Laravel', 30);
         if ($timestamp->diffInSeconds($now) > 60) {
             return response()->noContent(204);
         }

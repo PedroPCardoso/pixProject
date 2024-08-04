@@ -4,6 +4,9 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Carbon\Carbon;
+use App\Services\SwooleTableService;
+use Laravel\Octane\Facades\Octane;
+use Illuminate\Support\Facades\Cache;
 
 class UpdateTransactions extends Command
 {
@@ -23,25 +26,34 @@ class UpdateTransactions extends Command
 
     protected $table;
     protected $stats;
+    protected $service;
 
-    public function __construct()
+    public function __construct(SwooleTableService $swooleTableService)
     {
         parent::__construct();
-        $this->table = app('swoole.transations'); // Acesso à tabela de transações
-        $this->stats = app('swoole.stats'); // Acesso 
-    }
+        $this->service = $swooleTableService;
+    }   
 
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(SwooleTableService $swooleTableService)
     {
- 
-        $now = Carbon::now();
+        // $this->stats = $this->service->getTable('swoole.stats');
+        // $this->table = $this->service->getTable('swoole.transactions');
+        // Cache::store('octane')->get();
+        // Cache::store('octane')->put('framework', 'Laravel2', 30);
+        var_dump($swooleTableService->getTable('swoole.transactions')->count());
+        // var_dump(Cache::store('octane')->get('framework'));
+        // var_dump(Octane::table('swoole.transactions')->count());
+        // var_dump(Octane::table('swoole.stats')->count());
+        // var_dump($this->stats->count());
+        // $now = Carbon::now();
+        exit;
         $sum = 0;
         $count = 0;
-        $max = PHP_FLOAT_MIN;
-        $min = PHP_FLOAT_MAX;
+        $max = 0;
+        $min = 0;
 
 
         foreach ($this->table as $key => $row) {
@@ -49,12 +61,12 @@ class UpdateTransactions extends Command
             $now = Carbon::now();
 
             if ($timestamp->diffInSeconds($now) > 60) {
-                $this->table->del($key);
+                // $this->table->del($key);
                 break;
             }
 
             if ($timestamp->isFuture()) {
-                $this->table->del($key);
+                // $this->table->del($key);
                 break;
             }
             $amount = $row['amount'];
@@ -68,8 +80,8 @@ class UpdateTransactions extends Command
         $avg = $count > 0 ? $sum / $count : 0;
 
         // Atualize as estatísticas
-        $this->saveStatsToJson($sum, $avg, $max, $min, $count);
-        $this->saveTableToJson($sum, $avg, $max, $min, $count);
+        // $this->saveStatsToJson($sum, $avg, $max, $min, $count);
+        // $this->saveTableToJson($sum, $avg, $max, $min, $count);
 
         $this->info('Transactions and statistics updated successfully.');
     }
