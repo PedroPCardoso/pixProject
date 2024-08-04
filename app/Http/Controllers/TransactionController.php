@@ -4,16 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\TransactionRequest;
 use Carbon\Carbon;
+use App\Services\SwooleTableService;
 
 class TransactionController extends Controller
 {
     protected $table;
     protected $stats;
+    protected $service;
 
-    public function __construct()
+    public function __construct(SwooleTableService $service)
     {
-        $this->table = app('swoole.transations');
-        $this->stats = app('swoole.stats');
+        $this->service = $service;
+        $this->table = $service->getTable('swoole.transactions');
+        $this->stats = $service->getTable('swoole.stats');
     }
 
     public function store(TransactionRequest $request)
@@ -32,19 +35,16 @@ class TransactionController extends Controller
 
         $key = $timestamp->timestamp + random_int(0, 1000) . $amount;
 
+        $this->service->addTransaction($key, $amount, $timestamp);
 
-        $this->table->set($key, [
-            'amount' => $amount,
-            'timestamp' => $timestamp->toIso8601String()
-        ]);
-
-        $this->updateStatsOnInsert($amount);
+        $this->service->addStats($amount);
 
         return response()->noContent(201);
     }
 
     public function getAllTransactions()
     {
+        $this->table = $this->service->getTable('swoole.transactions');
         $transactions = [];
         foreach ($this->table as $key => $row) {
             $transactions[] = [
@@ -59,6 +59,7 @@ class TransactionController extends Controller
 
     public function statistics()
     {
+        $this->stats = $this->service->getTable('swoole.stats');
         $stats = $this->stats->get(0);
         $count = $stats['count'];
         $sum = $stats['sum'];
@@ -84,23 +85,6 @@ class TransactionController extends Controller
         $this->resetStats();
 
         return response()->noContent(204);
-    }
-
-    protected function updateStatsOnInsert($amount)
-    {
-        $stats = $this->stats->get(0);
-
-        $newSum = $stats['sum'] + $amount;
-        $newCount = $stats['count'] + 1;
-        $newMax = max($stats['max'], $amount);
-        $newMin = $newCount == 1 ? $amount : min($stats['min'], $amount);
-
-        $this->stats->set(0, [
-            'sum' => $newSum,
-            'count' => $newCount,
-            'max' => $newMax,
-            'min' => $newMin,
-        ]);
     }
 
     protected function resetStats()
