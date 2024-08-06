@@ -8,6 +8,8 @@ use App\Services\SwooleTableService;
 use Laravel\Octane\Facades\Octane;
 use Illuminate\Support\Facades\Cache;
 
+
+
 class UpdateTransactions extends Command
 {
     /**
@@ -39,17 +41,10 @@ class UpdateTransactions extends Command
      */
     public function handle(SwooleTableService $swooleTableService)
     {
-        // $this->stats = $this->service->getTable('swoole.stats');
-        // $this->table = $this->service->getTable('swoole.transactions');
+        $this->stats = $this->service->getTable('swoole.stats');
+        $this->table = $this->service->getTable('swoole.transactions');
         // Cache::store('octane')->get();
-        // Cache::store('octane')->put('framework', 'Laravel2', 30);
-        var_dump($swooleTableService->getTable('swoole.transactions')->count());
-        // var_dump(Cache::store('octane')->get('framework'));
-        // var_dump(Octane::table('swoole.transactions')->count());
-        // var_dump(Octane::table('swoole.stats')->count());
-        // var_dump($this->stats->count());
-        // $now = Carbon::now();
-        exit;
+
         $sum = 0;
         $count = 0;
         $max = 0;
@@ -127,6 +122,6 @@ class UpdateTransactions extends Command
         }
 
         $jsonFilePath = storage_path('app/transactions.json');
-        file_put_contents($jsonFilePath, json_encode($transactions));
+        file_put_contents($jsonFilePath, json_encode($this->table));
     }
 }
