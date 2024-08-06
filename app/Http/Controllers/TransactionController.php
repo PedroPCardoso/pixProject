@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\TransactionRequest;
 use Carbon\Carbon;
 use App\Services\SwooleTableService;
+use Illuminate\Support\Facades\Cache;
+
 
 class TransactionController extends Controller
 {
@@ -24,7 +26,7 @@ class TransactionController extends Controller
         $amount = (float) $request->input('amount');
         $timestamp = Carbon::createFromFormat('Y-m-d\TH:i:s.u\Z', $request->input('timestamp'));
         $now = Carbon::now();
-
+        Cache::store('octane')->put('framework', 'Laravel', 30);
         if ($timestamp->diffInSeconds($now) > 60) {
             return response()->noContent(204);
         }
@@ -35,10 +37,10 @@ class TransactionController extends Controller
 
         $key = $timestamp->timestamp + random_int(0, 1000) . $amount;
 
-        $this->service->addTransaction($key, $amount, $timestamp);
+        $this->service->addTransaction($key, $amount, $timestamp->timestamp);
 
         $this->service->addStats($amount);
-
+        // $this->saveTableToJson();
         return response()->noContent(201);
     }
 
@@ -95,6 +97,21 @@ class TransactionController extends Controller
             'max' => 0,
             'min' => PHP_FLOAT_MAX,
         ]);
+    }
+
+    protected function saveTableToJson()
+    {
+        $this->table = $this->service->getTable('swoole.transactions');
+        // $transactions = [];
+        // foreach ($this->table as $key => $row) {
+        //     $transactions[] = [
+        //         'amount' => $row['amount'],
+        //         'timestamp' => $row['timestamp'],
+        //     ];
+        // }
+
+        $jsonFilePath = storage_path('app/transactions.json');
+        file_put_contents($jsonFilePath, json_encode( array_values($this->table)));
     }
 
 

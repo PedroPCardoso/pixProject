@@ -3,9 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Services\SwooleTableService;
 use Swoole\Table;
 use Carbon\Carbon;
-use App\Services\SwooleTableService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -16,21 +16,12 @@ class AppServiceProvider extends ServiceProvider
             return new SwooleTableService();
         });
 
-        // Registra as tabelas Swoole diretamente no container para o acesso via app()
-        $this->app->singleton('swoole.transactions', function () {
-            return app(SwooleTableService::class)->getTable('swoole.transactions');
-        });
-
-        $this->app->singleton('swoole.stats', function () {
-            return app(SwooleTableService::class)->getTable('swoole.stats');
-        });
 
     }
 
     public function boot()
     {
-        app('swoole.stats');
-        app('swoole.transactions');
+        app(SwooleTableService::class);
     }
 
 
