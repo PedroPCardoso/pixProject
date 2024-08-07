@@ -32,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
             return $table;
         });
 
-        $this->loadDataFromJson();
+        // $this->loadDataFromJson();
     }
 
     public function boot()
@@ -41,38 +41,38 @@ class AppServiceProvider extends ServiceProvider
         app('swoole.transations');
     }
 
-    protected function loadDataFromJson()
-    {
-        $transactionsFilePath = storage_path('app/transactions.json');
-        $statsFilePath = storage_path('app/stats.json');
-        // Carregar dados das transações
-        if (file_exists($transactionsFilePath)) {
-            $data = json_decode(file_get_contents($transactionsFilePath), true);
+    // protected function loadDataFromJson()
+    // {
+    //     $transactionsFilePath = storage_path('app/transactions.json');
+    //     $statsFilePath = storage_path('app/stats.json');
+    //     // Carregar dados das transações
+    //     if (file_exists($transactionsFilePath)) {
+    //         $data = json_decode(file_get_contents($transactionsFilePath), true);
             
-            $table = app('swoole.transations');
-            foreach ($data as $transaction) {
+    //         $table = app('swoole.transations');
+    //         foreach ($data as $transaction) {
                 
-                $timestamp =Carbon::parse($transaction['timestamp']);
-                $key = $timestamp->timestamp;
+    //             $timestamp =Carbon::parse($transaction['timestamp']);
+    //             $key = $timestamp->timestamp;
 
-                $table->set($key, [
-                    'amount' => $transaction['amount'],
-                    'timestamp' => $timestamp->toIso8601String()
-                ]);
-            }
-        }
+    //             $table->set($key, [
+    //                 'amount' => $transaction['amount'],
+    //                 'timestamp' => $timestamp->toIso8601String()
+    //             ]);
+    //         }
+    //     }
 
-        // Carregar dados das estatísticas
-        if (file_exists($statsFilePath)) {
-            $statsData = json_decode(file_get_contents($statsFilePath), true);
-            $stats = app('swoole.stats');
+    //     // Carregar dados das estatísticas
+    //     if (file_exists($statsFilePath)) {
+    //         $statsData = json_decode(file_get_contents($statsFilePath), true);
+    //         $stats = app('swoole.stats');
 
-            $stats->set(0, [
-                'sum' => $statsData['sum'],
-                'count' => $statsData['count'],
-                'max' => $statsData['max'],
-                'min' => $statsData['min'],
-            ]);
-        }
-    }
+    //         $stats->set(0, [
+    //             'sum' => $statsData['sum'],
+    //             'count' => $statsData['count'],
+    //             'max' => $statsData['max'],
+    //             'min' => $statsData['min'],
+    //         ]);
+    //     }
+    // }
 }
