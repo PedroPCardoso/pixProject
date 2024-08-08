@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 
 class UpdateTransactions extends Command
 {
+    const MAX_CACHE_TIME_IN_SECONDS = 60; 
     /**
      * The name and signature of the console command.
      *

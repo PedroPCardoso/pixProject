@@ -12,10 +12,8 @@ use App\Jobs\DeleteAllTransactionsJob;
 
 class TransactionController extends Controller
 {
-    const MAX_CACHE_TIME_IN_SECONDS = 600; 
-    /**
-     * Armazena uma transação no cache usando o driver Octane.
-     */
+    const MAX_CACHE_TIME_IN_SECONDS = 60; 
+
     public function store(TransactionRequest $request)
     {
         $transactionId = Str::uuid()->toString(); 
