@@ -66,7 +66,7 @@ class UpdateTransactions extends Command
             var_dump($timestamp->diffInSeconds($now));
 
             // Remove transações mais antigas que 60 segundos ou com timestamp futuro
-            if ($timestamp->diffInSeconds($now) > 60 || $timestamp->isFuture()) {
+            if ($timestamp->diffInSeconds($now) > self::MAX_CACHE_TIME_IN_SECONDS || $timestamp->isFuture()) {
                 Cache::store('file')->forget('transactions_' . $transactionId);
                 continue;
             }

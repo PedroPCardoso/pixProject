@@ -8,51 +8,48 @@ use App\Http\Requests\TransactionRequest;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use App\Jobs\DeleteAllTransactionsJob;
-
+use Illuminate\Http\JsonResponse;
 
 class TransactionController extends Controller
 {
-    const MAX_CACHE_TIME_IN_SECONDS = 60; 
+    const MAX_CACHE_TIME_IN_SECONDS = 60;
 
-    public function store(TransactionRequest $request)
+    public function store(TransactionRequest $request): JsonResponse
     {
-        $transactionId = Str::uuid()->toString(); 
-
-        $transactionKey = 'transactions_' . $transactionId;
-
-        $amount = (float) $request->input('amount');
-        $date = Carbon::createFromFormat('Y-m-d\TH:i:s.v\Z', $request->input('timestamp'));
-
-        // Formate a data conforme necessário
-        $now = Carbon::now();
-
-        if ($date->diffInSeconds($now) > self::MAX_CACHE_TIME_IN_SECONDS) {
-            return response()->noContent(204);
+        // Valida o JSON recebido
+        if (!$request->isJson()) {
+            return response()->json(['error' => 'Invalid JSON'], 400);
         }
 
-        if ($date->isFuture()) {
-            return response()->json(['error' => 'Timestamp is in the future'], 422);
+        try {
+            $transactionId = Str::uuid()->toString();
+            $transactionKey = 'transactions_' . $transactionId;
+
+            $amount = (float) $request->input('amount');
+            $date = Carbon::createFromFormat('Y-m-d\TH:i:s.v\Z', $request->input('timestamp'));
+            $now = Carbon::now();
+
+            if ($date->diffInSeconds($now) > self::MAX_CACHE_TIME_IN_SECONDS) {
+                return response()->noContent(204);
+            }
+
+            if ($date->isFuture()) {
+                return response()->json(['error' => 'Timestamp is in the future'], 422);
+            }
+
+            $transaction = [
+                'timestamp' => $date->format('d/m/Y H:i:s'),
+                'amount' => $amount,
+            ];
+            $expiration = $date->addSeconds(self::MAX_CACHE_TIME_IN_SECONDS);
+
+            Cache::store('file')->put($transactionKey, $transaction, $expiration);
+            $this->updateTransactionIndex($transactionId);
+
+            return response()->json(['message' => 'Transaction stored successfully.', 'transaction_id' => $transactionId], 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Invalid input data'], 422);
         }
-
-        // Gera um transaction_id aleatório
-        $transactionId = Str::uuid()->toString();
-
-        
-        $transactionKey = 'transactions_' . $transactionId;
-
-        $transaction = [
-            'timestamp' =>  $date->format('d/m/Y H:i:s'),
-            'amount' => $amount,
-        ];
-        $expiration = $date->addSeconds(self::MAX_CACHE_TIME_IN_SECONDS);
-
-        // Armazena a transação no cache
-        Cache::store('file')->put($transactionKey, $transaction, $expiration);
-
-        // Atualiza o índice de transações
-        $this->updateTransactionIndex($transactionId);
-
-        return response()->json(['message' => 'Transaction stored successfully.', 'transaction_id' => $transactionId]);
     }
 
     /**

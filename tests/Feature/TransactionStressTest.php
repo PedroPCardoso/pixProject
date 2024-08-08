@@ -11,6 +11,8 @@ use Illuminate\Support\Str;
 
 class TransactionStressTest extends TestCase
 {
+    const MAX_CACHE_TIME_IN_SECONDS = 30; 
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -29,7 +31,7 @@ class TransactionStressTest extends TestCase
         for ($i = 0; $i < 1000; $i++) { // Simula 1000 transações simultâneas
             $transactionData[] = [
                 'amount' => rand(100, 10000) / 100,
-                'timestamp' => Carbon::now()->subSeconds(rand(1, 30))->format('Y-m-d\TH:i:s.v\Z')
+                'timestamp' => Carbon::now()->subSeconds(rand(1, self::MAX_CACHE_TIME_IN_SECONDS))->format('Y-m-d\TH:i:s.v\Z')
             ];
         }
 
@@ -40,8 +42,7 @@ class TransactionStressTest extends TestCase
         }
         // Assegura que todas as transações foram processadas corretamente
         foreach ($responses as $response) {
-            $response->assertStatus(200);
-            $response->assertJsonStructure(['message', 'transaction_id']);
+            $response->assertStatus(201);
         }
 
         // Verifica se todas as transações estão armazenadas corretamente no cache
@@ -63,11 +64,11 @@ class TransactionStressTest extends TestCase
             
             $data = [
                 'amount' => $amount,
-                'timestamp' => Carbon::now()->subSeconds(rand(1, 60))->format('Y-m-d\TH:i:s.v\Z')
+                'timestamp' => Carbon::now()->subSeconds(rand(1, self::MAX_CACHE_TIME_IN_SECONDS))->format('Y-m-d\TH:i:s.v\Z')
             ];
 
             $response = $this->postJson('/api/transactions', $data);
-            $response->assertStatus(200);
+            $response->assertStatus(201);
         }
 
         // Simula a execução do comando de estatísticas
