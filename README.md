@@ -1,77 +1,23 @@
-./vendor/bin/sail up -d
+## Solução Implementada
 
-./vendor/bin/sail artisan migrate
+### Tecnologias Utilizadas
 
-./vendor/bin/sail artisan octane:reload
+- **Laravel Octane:** Para gerenciar múltiplas requisições simultâneas, garantindo alta performance e eficiência no atendimento das requisições.
+- **Cache do Laravel:** Utilizado com o driver `file` para armazenar transações rapidamente no sistema de arquivos.
+- **Jobs:** Implementado um `Job` assíncrono para remover todas as transações em segundo plano, evitando impacto na performance do sistema.
+- **Comando em Background:** Um `Command` é executado a cada segundo para atualizar as estatísticas das transações, incluindo soma, média, máximo, mínimo e contagem.
 
+### Funcionalidade
 
-feature do octane para limpar a memoria
+1. **Armazenamento de Transações:**
+   - As transações são armazenadas no cache do Laravel usando o driver `file`. Cada transação tem um tempo de expiração configurado para garantir que dados antigos sejam removidos.
 
-Garbage Collection Threshold
+2. **Exclusão de Transações:**
+   - Um `Job` assíncrono é utilizado para remover todas as transações do cache, o que é feito de forma eficiente sem impactar a performance do sistema. (php artisan queue:work)
 
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+3. **Atualização de Estatísticas:**
+   - Um comando é configurado para rodar em background a cada segundo, atualizando estatísticas como soma, média, máximo, mínimo e contagem das transações. Essas estatísticas são armazenadas no cache e estão disponíveis para consulta. ( php artisan schedule:run )
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+### Resumo
 
-## About Laravel
-
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+A solução implementada aproveita o Laravel Octane para alta performance e o cache para armazenamento eficiente de dados. A exclusão das transações é realizada via `Job` assíncrono, e a atualização das estatísticas é gerenciada por um comando que roda em segundo plano a cada segundo, garantindo que as informações estejam sempre atualizadas e disponíveis.
