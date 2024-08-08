@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class UpdateTransactions extends Command
 {
@@ -21,14 +22,9 @@ class UpdateTransactions extends Command
      */
     protected $description = 'Update transactions and statistics based on the last 60 seconds';
 
-    protected $table;
-    protected $stats;
-
     public function __construct()
     {
         parent::__construct();
-        $this->table = app('swoole.transations'); // Acesso à tabela de transações
-        $this->stats = app('swoole.stats'); // Acesso 
     }
 
     /**
@@ -36,46 +32,65 @@ class UpdateTransactions extends Command
      */
     public function handle()
     {
- 
         $now = Carbon::now();
         $sum = 0;
         $count = 0;
         $max = PHP_FLOAT_MIN;
         $min = PHP_FLOAT_MAX;
 
+        // Recupera o índice de transações
+        $transactionIds = Cache::store('file')->get('transaction_ids', []);
 
-        foreach ($this->table as $key => $row) {
-            $timestamp = Carbon::parse($row['timestamp']);
-            $now = Carbon::now();
+        if (empty($transactionIds)) {
+           
+            $this->info('No transactions found.');
+            return;
+        }
 
-            if ($timestamp->diffInSeconds($now) > 60) {
-                $this->table->del($key);
-                break;
+        $validTransactions = [];
+        $transaction = Cache::store('file')->get('transactions_' . $transactionIds[0]);
+
+        foreach ($transactionIds as $transactionId) {
+            $transaction = Cache::store('file')->get('transactions_' . $transactionId);
+          
+            // Remover transações com valor null ou timestamp ausente
+            if (is_null($transaction) || !isset($transaction['timestamp'], $transaction['amount'])) {
+                Cache::store('file')->forget('transactions_' . $transactionId);
+                continue;
+            }
+            
+            $timestamp = Carbon::parse($transaction['timestamp'])->setTimezone(env('APP_TIMEZONE', 'UTC'));
+            var_dump($timestamp->toDateTimeString());
+            var_dump($now->toDateTimeString());
+            var_dump($timestamp->diffInSeconds($now));
+
+            // Remove transações mais antigas que 60 segundos ou com timestamp futuro
+            if ($timestamp->diffInSeconds($now) > 60 || $timestamp->isFuture()) {
+                Cache::store('file')->forget('transactions_' . $transactionId);
+                continue;
             }
 
-            if ($timestamp->isFuture()) {
-                $this->table->del($key);
-                break;
-            }
-            $amount = $row['amount'];
+            $amount = $transaction['amount'];
             $sum += $amount;
             $count++;
             $max = max($max, $amount);
             $min = min($min, $amount);
+
+            $validTransactions[$transactionId] = $transaction;
+
         }
 
-        // Calcule a média
+        // // Calcula a média
         $avg = $count > 0 ? $sum / $count : 0;
 
-        // Atualize as estatísticas
+        // // Atualiza as estatísticas no cache
         $this->saveStatsToJson($sum, $avg, $max, $min, $count);
-        $this->saveTableToJson($sum, $avg, $max, $min, $count);
 
         $this->info('Transactions and statistics updated successfully.');
     }
 
     /**
-     * Atualiza a tabela de estatísticas com os novos valores.
+     * Atualiza as estatísticas no cache e salva em um arquivo JSON.
      *
      * @param float $sum
      * @param float $avg
@@ -85,36 +100,32 @@ class UpdateTransactions extends Command
      */
     protected function saveStatsToJson($sum, $avg, $max, $min, $count)
     {
-        $this->stats->set(0, [
+        $stats = [
             'sum' => number_format($sum, 2, '.', ''),
             'avg' => number_format($avg, 2, '.', ''),
             'max' => number_format($max, 2, '.', ''),
             'min' => number_format($min, 2, '.', ''),
             'count' => $count
-        ]);
+        ];
 
-        // Salvar no arquivo JSON
-        $statsFilePath = storage_path('app/stats.json');
-        file_put_contents($statsFilePath, json_encode([
-            'sum' => number_format($sum, 2, '.', ''),
-            'avg' => number_format($avg, 2, '.', ''),
-            'max' => number_format($max, 2, '.', ''),
-            'min' => number_format($min, 2, '.', ''),
-            'count' => $count
-        ]));
+        Cache::store('file')->put('stats', $stats);
     }
 
-    protected function saveTableToJson()
+    /**
+     * Atualiza o cache e salva as transações válidas em um arquivo JSON.
+     *
+     * @param array $transactions
+     */
+    protected function saveTableToJson($transactions)
     {
-        $transactions = [];
-        foreach ($this->table as $key => $row) {
-            $transactions[] = [
-                'amount' => $row['amount'],
-                'timestamp' => $row['timestamp'],
-            ];
+        // Atualizar o cache com as transações válidas
+        foreach ($transactions as $transactionId => $transaction) {
+            Cache::store('file')->put('transactions_' . $transactionId, $transaction);
         }
 
-        $jsonFilePath = storage_path('app/transactions.json');
-        file_put_contents($jsonFilePath, json_encode($transactions));
+        // Atualizar o índice de transações com os IDs das transações válidas
+        $validTransactionIds = array_keys($transactions);
+        Cache::store('file')->put('transaction_ids', $validTransactionIds);
     }
+
 }
