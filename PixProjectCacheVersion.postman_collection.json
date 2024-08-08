@@ -1,0 +1,136 @@
+{
+	"info": {
+		"_postman_id": "c2d249a2-0077-4df2-9d49-d07325c643d5",
+		"name": "PixProjectCacheVersion",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1256655"
+	},
+	"item": [
+		{
+			"name": "Statistics",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{completedUrl}}/stats",
+					"protocol": "http",
+					"host": [
+						"{{completedUrl}}"
+					],
+					"path": [
+						"stats"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetAllTransactions",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{completedUrl}}/transactions",
+					"protocol": "http",
+					"host": [
+						"{{completedUrl}}"
+					],
+					"path": [
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CreateTransactions",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "amount",
+							"value": "25",
+							"type": "text"
+						},
+						{
+							"key": "timestamp",
+							"value": "2024-08-08T17:38:20.312Z",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{completedUrl}}/transactions",
+					"protocol": "http",
+					"host": [
+						"{{completedUrl}}"
+					],
+					"path": [
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "deleteAll",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "name",
+							"value": "trocado",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://pixproject-laravel.test/transactions",
+					"protocol": "http",
+					"host": [
+						"pixproject-laravel",
+						"test"
+					],
+					"path": [
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "completedUrl",
+			"value": "pixproject-laravel.test/api"
+		}
+	]
+}
