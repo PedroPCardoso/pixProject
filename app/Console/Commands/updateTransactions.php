@@ -49,21 +49,18 @@ class UpdateTransactions extends Command
         }
 
         $validTransactions = [];
-        $transaction = Cache::store('file')->get('transactions_' . $transactionIds[0]);
 
         foreach ($transactionIds as $transactionId) {
             $transaction = Cache::store('file')->get('transactions_' . $transactionId);
           
             // Remover transações com valor null ou timestamp ausente
-            if (is_null($transaction) || !isset($transaction['timestamp'], $transaction['amount'])) {
+            if (is_null($transaction) || !isset($transaction['timestamp'])) {
                 Cache::store('file')->forget('transactions_' . $transactionId);
                 continue;
             }
-            
-            $timestamp = Carbon::parse($transaction['timestamp'])->setTimezone(env('APP_TIMEZONE', 'UTC'));
-            var_dump($timestamp->toDateTimeString());
-            var_dump($now->toDateTimeString());
-            var_dump($timestamp->diffInSeconds($now));
+
+
+            $timestamp = Carbon::createFromFormat('d/m/Y H:i:s', $transaction['timestamp']);
 
             // Remove transações mais antigas que 60 segundos ou com timestamp futuro
             if ($timestamp->diffInSeconds($now) > self::MAX_CACHE_TIME_IN_SECONDS || $timestamp->isFuture()) {

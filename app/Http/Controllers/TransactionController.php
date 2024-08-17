@@ -14,13 +14,8 @@ class TransactionController extends Controller
 {
     const MAX_CACHE_TIME_IN_SECONDS = 60;
 
-    public function store(TransactionRequest $request): JsonResponse
+    public function store(TransactionRequest $request): JsonResponse | \Illuminate\Http\Response
     {
-        // Valida o JSON recebido
-        if (!$request->isJson()) {
-            return response()->json(['error' => 'Invalid JSON'], 400);
-        }
-
         try {
             $transactionId = Str::uuid()->toString();
             $transactionKey = 'transactions_' . $transactionId;

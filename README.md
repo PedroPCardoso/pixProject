@@ -21,3 +21,9 @@
 ### Resumo
 
 A solução implementada aproveita o Laravel Octane para alta performance e o cache para armazenamento eficiente de dados. A exclusão das transações é realizada via `Job` assíncrono, e a atualização das estatísticas é gerenciada por um comando que roda em segundo plano a cada segundo, garantindo que as informações estejam sempre atualizadas e disponíveis.
+
+### Background
+
+php artisan schedule:run
+
+php artisan queue:work

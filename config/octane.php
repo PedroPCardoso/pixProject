@@ -161,6 +161,12 @@ return [
             'name' => 'string:1000',
             'votes' => 'int',
         ],
+
+        'transactions:1000' => [
+            'amount' => 'float',
+            'timestamp' => 'string:64',
+        ],
+
     ],
 
     /*
